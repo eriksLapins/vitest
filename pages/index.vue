@@ -18,6 +18,10 @@ defineOptions({
 
 const response = ref('');
 onMounted(async () => {
-    response.value = await getData()
+    try {
+        response.value = await getData()
+    } catch (e) {
+        response.value = 'test-error'
+    }
 })
 </script>

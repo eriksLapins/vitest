@@ -3,7 +3,8 @@ import { mockNuxtImport, mountSuspended } from '@nuxt/test-utils/runtime'
 import Index from '../pages/index.vue';
 import App from '../app.vue'
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, test, vi } from 'vitest';
+import { resolveAlias } from '@nuxt/kit';
 
 beforeAll(() => {
   // vi.mock('ofetch', () => {
@@ -19,25 +20,27 @@ beforeAll(() => {
   //     fetch: $fetch,
   //   }
   // })
-  vi.stubGlobal('$fetch', () => {
-    return {
-      data: {
-        some: 'test-field'
-      }
-    }
-  })
+  vi.mock('~/utils/getData');  
 })
 
 afterAll(() => {
-  vi.restoreAllMocks();
-  vi.unstubAllGlobals()
+  vi.unstubAllGlobals();
+  vi.resetAllMocks();
 })
 
 describe('App nuxt', async () => {
-  it('renders the app', async () => {
-      const component = await mountSuspended(App)
-      console.log(component.html())
-      expect(component.html()).toContain('test-field');
+  const utils = await import('~/utils/getData');
+  test('renders the app', async () => {
+    utils.getData = vi.fn().mockResolvedValue('test-field');
+    const component = await mountSuspended(Index)
+    console.log(component.html())
+    expect(component.html()).toContain('test-field');
+  })
+  test('will catch an error', async () => {
+    utils.getData = vi.fn().mockRejectedValue('test-error');
+    const component = await mountSuspended(Index)
+    console.log(component.html())
+    expect(component.html()).toContain('test-error');
   })
 })
 
